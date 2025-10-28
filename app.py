@@ -15,7 +15,7 @@ file_id = "YOUR_FILE_ID"
 
 if not os.path.exists(model_path):
     st.write("📥 Downloading model from Google Drive...")
-    gdown.download(f"https://drive.google.com/file/d/1b7fcYIAKC1Xo67LcMQEmcEMdJLxM0Esn/view?usp=sharing", model_path, quiet=False)
+    gdown.download(f"https://drive.google.com/file/d/1b7fcYIAKC1Xo67LcMQEmcEMdJLxM0Esn", model_path, quiet=False)
 
 # Verify file size
 if os.path.getsize(model_path) < 1000000:  # less than 1 MB
