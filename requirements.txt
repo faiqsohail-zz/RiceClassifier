@@ -1,6 +1,6 @@
 streamlit==1.39.0
 tensorflow==2.20.0
+protobuf>=5.28.0,<6.0.0
 numpy
 pillow
 gdown
-protobuf==3.20.*
