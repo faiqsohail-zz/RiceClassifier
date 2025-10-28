@@ -13,7 +13,7 @@ model_path = "rice_cnn_model.h5"
 file_id = "1ABCDefGHIJ"  # <-- your Drive file ID
 
 if not os.path.exists(model_path):
-    gdown.download(f"https://drive.google.com/uc?id={file_id}", model_path, quiet=False)
+    gdown.download(f"https://drive.google.com/file/d/1b7fcYIAKC1Xo67LcMQEmcEMdJLxM0Esn/view?usp=sharing", model_path, quiet=False)
 
 from tensorflow.keras.models import load_model
 model = load_model(model_path)
