@@ -1,63 +1,78 @@
+import os
 import streamlit as st
 import numpy as np
+from PIL import Image
 from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
-import os
-os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
-import gdown, os
+import gdown
 
-# ================================
-# Load the trained model
-# ================================
+# —————————————————————————
+# App configuration
+# —————————————————————————
+st.set_page_config(page_title="Rice Variety Classifier", layout="centered")
+st.title("🌾 Rice Variety Classification App")
+st.write("Upload a rice grain image and the trained CNN model will predict its variety.")
 
-model_path = "rice_cnn_model.h5"
-file_id = "YOUR_FILE_ID"
+# —————————————————————————
+# Model download/setup
+# —————————————————————————
+model_filename = "rice_cnn_model.h5"
+# From your Drive link: https://drive.google.com/file/d/1b7fcYIAKC1Xo67LcMQEmcEMdJLxM0Esn/view?usp=drive_link
+file_id = "1b7fcYIAKC1Xo67LcMQEmcEMdJLxM0Esn"
+download_url = f"https://drive.google.com/uc?id={file_id}"
 
-if not os.path.exists(model_path):
-    st.write("📥 Downloading model from Google Drive...")
-    gdown.download(f"https://drive.google.com/file/d/1b7fcYIAKC1Xo67LcMQEmcEMdJLxM0Esn", model_path, quiet=False)
-
-# Verify file size
-if os.path.getsize(model_path) < 1000000:  # less than 1 MB
-    st.error("Model file seems incomplete. Please re-upload to Google Drive.")
+if not os.path.exists(model_filename):
+    st.write("📥 Downloading model…")
+    gdown.download(download_url, model_filename, quiet=False)
 else:
-    st.success("Model downloaded successfully!")
+    st.write("✅ Model file already present.")
 
-from tensorflow.keras.models import load_model
-model = load_model(model_path)
+# Basic check of file size
+min_size_bytes = 5 * 1024 * 1024  # e.g. require at least 5 MB for a valid model
+if os.path.exists(model_filename):
+    size = os.path.getsize(model_filename)
+    st.write(f"Downloaded model size: {size / (1024*1024):.2f} MB")
+    if size < min_size_bytes:
+        st.error("⚠️ Model file too small — might be incorrect download. Please check your Drive sharing link.")
+        st.stop()
+else:
+    st.error("❌ Model file not found.")
+    st.stop()
 
-# ================================
-# Define class names (in same order as during training)
-# ================================
-# Replace with your actual folder names if different
+# Load the model
+model = load_model(model_filename)
+st.success("✅ Model loaded successfully!")
+
+# —————————————————————————
+# Define classes (ensure same order as during training)
+# —————————————————————————
 class_names = ['Arborio', 'Basmati', 'Ipsala', 'Jasmine', 'Karacadag']
 
-# ================================
-# Streamlit UI
-# ================================
-st.set_page_config(page_title="Rice Variety Classifier", page_icon="🌾", layout="centered")
-
-st.title("🌾 Rice Variety Classification App")
-st.write("Upload an image of rice grain and the model will predict its variety.")
-
+# —————————————————————————
+# Image upload & prediction
+# —————————————————————————
 uploaded_file = st.file_uploader("Upload a rice grain image", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    # Show uploaded image
-    img = Image.open(uploaded_file)
-    st.image(img, caption="Uploaded Image", use_container_width=True)
-
-    # Preprocess image
-    img = img.resize((128, 128))  # same as model training size
-    img_array = image.img_to_array(img)
+    # Display the image
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
+    
+    # Preprocess: resize, convert, normalise
+    img_height, img_width = 128, 128
+    image = image.resize((img_width, img_height))
+    img_array = np.array(image)
+    if img_array.shape[-1] == 4:
+        # if image has alpha channel, drop it
+        img_array = img_array[..., :3]
+    img_array = img_array.astype('float32') / 255.0
     img_array = np.expand_dims(img_array, axis=0)
-    img_array = img_array / 255.0
-
+    
     # Predict
-    prediction = model.predict(img_array)
-    predicted_class = class_names[np.argmax(prediction)]
-    confidence = np.max(prediction) * 100
-
-    # Display result
+    preds = model.predict(img_array)
+    pred_index = np.argmax(preds, axis=1)[0]
+    predicted_class = class_names[pred_index]
+    confidence = preds[0][pred_index] * 100
+    
+    # Show result
     st.success(f"**Predicted Variety:** {predicted_class}")
     st.write(f"**Confidence:** {confidence:.2f}%")
