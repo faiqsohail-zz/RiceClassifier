@@ -1,6 +1,7 @@
-tensorflow-cpu==2.16.1
-h5py==3.10.0
+tensorflow
+h5py
 numpy
 pillow
 streamlit
 gdown
+
