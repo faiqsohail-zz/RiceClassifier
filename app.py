@@ -9,11 +9,19 @@ import gdown, os
 # ================================
 # Load the trained model
 # ================================
+
 model_path = "rice_cnn_model.h5"
-file_id = "1ABCDefGHIJ"  # <-- your Drive file ID
+file_id = "YOUR_FILE_ID"
 
 if not os.path.exists(model_path):
+    st.write("📥 Downloading model from Google Drive...")
     gdown.download(f"https://drive.google.com/file/d/1b7fcYIAKC1Xo67LcMQEmcEMdJLxM0Esn/view?usp=sharing", model_path, quiet=False)
+
+# Verify file size
+if os.path.getsize(model_path) < 1000000:  # less than 1 MB
+    st.error("Model file seems incomplete. Please re-upload to Google Drive.")
+else:
+    st.success("Model downloaded successfully!")
 
 from tensorflow.keras.models import load_model
 model = load_model(model_path)
