@@ -1,7 +1,6 @@
-tensorflow
-h5py
+streamlit==1.39.0
+tensorflow==2.20.0
 numpy
 pillow
-streamlit
 gdown
-
+protobuf==3.20.*
